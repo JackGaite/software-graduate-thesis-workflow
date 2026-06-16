@@ -1,0 +1,4 @@
+interface:
+  display_name: "Software Graduate Thesis Workflow"
+  short_description: "Draft thesis, proposal, citation, and docs rules."
+  default_prompt: "Use $software-graduate-thesis-workflow to organize software graduate thesis materials and draft thesis or proposal content."

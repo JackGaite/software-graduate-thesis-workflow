@@ -79,31 +79,47 @@ Web --> User: 展示结果
 @enduml
 ```
 
-## IE 实体关系图示例
+## 论文图件强版式控制
 
-IE 实体关系图适合放在详细设计的数据管理或核心模块设计中。使用 `entity` 定义数据实体，`*` 标识强制属性或主键字段，`<<FK>>` 标注外键字段；常用关系包括 `||--`（正好一个）、`|o--`（零或一）、`}o--`（零或多）、`}|--`（一个或多个）。复杂图建议使用 `skinparam linetype ortho` 提升论文排版可读性。
+当论文图件不仅要求语义正确，还要求严格仿照指定版式时，不要完全依赖 PlantUML 自动布局。PlantUML 适合维护 UML 语义，但其布局由 Graphviz 或内部引擎决定，参与者到系统边界内用例的连线可能被渲染成曲线、折线或自动绕线，即使设置 `skinparam linetype line`、`straight`、`polyline`，也不一定满足论文排版要求。
 
-```plantuml
-@startuml
-title 设备与告警数据关系
-hide circle
-skinparam linetype ortho
+### 推荐做法
 
-entity "设备" as device {
-  *device_id : varchar <<PK>>
-  --
-  *name : varchar
-  status : varchar
-}
+- 保留 `.puml` 作为语义源文件，记录参与者、系统边界和用例关系。
+- 当图件需要固定版式、直线连线、标题框位置或黑白打印效果时，额外维护 `.svg` 作为论文排版源。
+- 从 `.svg` 导出 `.png`，保证最终论文插图与排版要求一致。
+- `.puml`、`.svg`、`.png` 使用同名文件，便于维护，例如：
+  - `top-level-use-case.puml`
+  - `top-level-use-case.svg`
+  - `top-level-use-case.png`
 
-entity "告警记录" as alarm {
-  *alarm_id : varchar <<PK>>
-  --
-  *device_id : varchar <<FK>>
-  *level : varchar
-  created_at : datetime
-}
+### 适用场景
 
-device ||--o{ alarm : 产生
-@enduml
+使用 SVG 排版源处理以下要求：
+
+- 系统名称必须固定在左上角或指定位置。
+- 图中不能出现 PlantUML 自动生成的图题。
+- 不展示功能域、包、注释或辅助说明。
+- 用例名称不带编号，只保留业务名称。
+- 参与者与用例之间必须是直线，不能出现折线或曲线。
+- 需要仿照论文、教材或学校模板中的用例图样式。
+
+### SVG 生成注意事项
+
+- 显式添加白色背景，避免透明 PNG 在查看器或论文工具中显示为黑底：
+
+```xml
+<rect x="0" y="0" width="..." height="..." fill="#fff"/>
 ```
+
+使用 <line> 绘制参与者与用例之间的关联线，避免自动路由。
+使用 <ellipse> 绘制用例，使用 <rect> 或 <path> 绘制系统边界和左上角标题栏。
+中文字体优先使用系统可用字体，例如 "Hiragino Sans"、"Songti SC"、"Noto Sans CJK SC"。
+生成 PNG 后必须进行视觉检查，不只检查文件是否存在。
+
+### 推荐命令
+从 SVG 导出 PNG：
+rsvg-convert -w 1040 -h 720 docs/requirements/diagrams/top-level-use-case.svg \
+  -o docs/requirements/diagrams/top-level-use-case.png
+检查 PNG 文件：
+file docs/requirements/diagrams/top-level-use-case.png\
